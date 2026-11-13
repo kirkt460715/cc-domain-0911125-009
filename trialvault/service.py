@@ -13,6 +13,7 @@ from .catalog.derive import Derivations
 from .catalog.checks import DatasetChecks
 from .releases.planner import ReleasePlanner
 from .releases.exporter import Exporter
+from .interim.service import InterimAnalysis
 
 
 class Vault:
@@ -39,6 +40,7 @@ class Vault:
         self.migrations = SchemaMigration(self.database, self.registry, self.ingestion)
         self.retention = RetentionReview(self.database, self.registry, self.releases)
         self.queries = CatalogQueries(self.database, self.registry, self.ingestion)
+        self.interim = InterimAnalysis(self.database, self.registry, self.ingestion)
 
     def close(self):
         self.database.close()

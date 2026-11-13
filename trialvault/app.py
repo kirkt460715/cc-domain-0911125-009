@@ -96,6 +96,18 @@ def dispatch(vault, request):
         return vault.queries.lookup(**options)
     if action == "storage_usage":
         return vault.queries.storage_usage()
+    if action == "interim_design":
+        return vault.interim.register_design(**options)
+    if action == "interim_design_get":
+        return vault.interim.design(options["id"])
+    if action == "interim_designs":
+        return vault.interim.designs()
+    if action == "interim_look":
+        return vault.interim.look(**options)
+    if action == "interim_report":
+        return vault.interim.report(**options)
+    if action == "interim_validate":
+        return vault.interim.validate(**options)
     reject("input", "unknown action", action=action)
 
 

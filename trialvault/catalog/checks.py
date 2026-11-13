@@ -130,11 +130,31 @@ class DatasetChecks:
             if actual != version["payload"]["parents"]:
                 reject("integrity", "lineage metadata differs")
             version_count += 1
+        interim_designs = 0
+        for row in self.db.rows("SELECT id,payload,digest FROM interim_designs ORDER BY id"):
+            if digest(parse_json(row["payload"])) != row["digest"]:
+                reject("integrity", "interim design digest mismatch", design=row["id"])
+            interim_designs += 1
+        interim_looks = 0
+        expected = {}
+        for row in self.db.rows(
+            "SELECT design,id,sequence,payload,digest FROM interim_looks ORDER BY design,sequence"
+        ):
+            payload = parse_json(row["payload"])
+            if digest(payload) != row["digest"]:
+                reject("integrity", "interim look digest mismatch", look=row["id"])
+            if payload["design"] != row["design"] or payload["sequence"] != row["sequence"]:
+                reject("integrity", "interim look sequence mismatch", look=row["id"])
+            expected[row["design"]] = expected.get(row["design"], 0) + 1
+            if row["sequence"] != expected[row["design"]]:
+                reject("integrity", "interim look sequence gap", look=row["id"])
+            interim_looks += 1
         return {
             "sqlite": "ok",
             "audit": audit,
             "versions": version_count,
             "artifacts": len(self.artifacts.inventory()),
+            "interim": {"designs": interim_designs, "looks": interim_looks},
         }
 
     def unused_artifacts(self, dry_run=True):
